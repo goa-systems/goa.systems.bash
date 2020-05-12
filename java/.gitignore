@@ -1,0 +1,5 @@
+# Ignore the generated folders
+archive/
+download/
+extract/
+java/
