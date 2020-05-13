@@ -1,6 +1,8 @@
 #!/bin/bash
 
 baseurl="https://cdn.azul.com/zulu/bin/"
+cert=""
+alias=""
 
 function do_download() {
 	wget -O "download/${1}" "${baseurl}${1}"
@@ -9,6 +11,19 @@ function do_download() {
 		mv "${filename}" archive
 	done
 
+	# If a certificate is specified, integrate it into the keystore.
+	if [ ! -z "$cert" ]
+	then
+		for filename in extract/*;do
+			if [ -d "${filename}/jre" ]
+			then
+				"${filename}/jre/bin/keytool" -importcert -noprompt -keystore "${filename}/jre/lib/security/cacerts" -storepass "changeit" -alias "$alias" -file "$cert"
+			else
+				"${filename}/bin/keytool" -importcert -noprompt -storepass "changeit" -alias "$alias" -file "$cert" -cacerts
+			fi
+		done
+	fi
+
 	# If second parameter is empty, don't create symlinks.
 	if [ ! -z "$2" ]
 	then
@@ -16,6 +31,7 @@ function do_download() {
 			ln -r -s ${filename} extract/$2
 		done
 	fi
+
 	mv extract/* java
 }
 
